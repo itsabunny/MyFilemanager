@@ -1,51 +1,49 @@
 package se.kaninis.filemanager.files;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import se.kaninis.filemanager.users.UserEntity;
 import se.kaninis.filemanager.users.UserRepository;
 
+import javax.sql.rowset.serial.SerialBlob;
+import java.io.IOException;
+import java.sql.Blob;
+import java.sql.SQLException;
 import java.util.Optional;
 
 @Service
 public class FileService {
 
-    @Autowired
-    private FileRepository fileRepository;
+    private final FileRepository fileRepository;
+    private final UserRepository userRepository;
 
-    @Autowired
-    private UserRepository userRepository;
+    public FileService(FileRepository fileRepository, UserRepository userRepository) {
+        this.fileRepository = fileRepository;
+        this.userRepository = userRepository;
+    }
 
-    /**
-     * Sparar en fil om användaren äger mappen den laddas upp i.
-     * @param file Filobjekt att spara
-     * @param user Inloggad användare
-     * @return Sparad fil eller null om användaren inte äger mappen
-     */
-    public FileEntity saveFile(FileEntity file, UserEntity user) {
-        if (file.getFolder().getOwner().equals(user)) {
-            return fileRepository.save(file);
+    @Transactional
+    public FileEntity saveFile(String name, byte[] content, Long folderId, UserEntity user) throws SQLException {
+        Blob blob = new SerialBlob(content);  // Konverterar byte[] till Blob
+
+        FileEntity file = new FileEntity();
+        file.setName(name);
+        file.setContent(blob);
+
+        fileRepository.save(file);
+        return file;
+    }
+
+    public byte[] getFileContent(Long id, UserEntity user) throws SQLException {
+        Optional<Blob> blobOpt = fileRepository.findFileContentById(id);
+        if (blobOpt.isEmpty()) {
+            return null;
         }
-        return null;
+
+        Blob blob = blobOpt.get();
+        return blob.getBytes(1, (int) blob.length());  // Konverterar Blob till byte[]
     }
 
-    /**
-     * Hämtar en fil om användaren äger den.
-     * @param id Fil-ID
-     * @param user Inloggad användare
-     * @return Fil om användaren äger den, annars tomt resultat
-     */
-    public Optional<FileEntity> getFileById(Long id, UserEntity user) {
-        return fileRepository.findById(id)
-                .filter(file -> file.getFolder().getOwner().equals(user));
-    }
-
-    /**
-     * Tar bort en fil om användaren äger den.
-     * @param id Fil-ID
-     * @param user Inloggad användare
-     * @return True om filen raderades, annars false
-     */
     public boolean deleteFile(Long id, UserEntity user) {
         return fileRepository.findById(id)
                 .filter(file -> file.getFolder().getOwner().equals(user))
