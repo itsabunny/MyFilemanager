@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.Data;
 import se.kaninis.filemanager.folders.FolderEntity;
 
+import java.sql.Blob;
+
 @Entity
 @Data
 public class FileEntity {
@@ -15,7 +17,9 @@ public class FileEntity {
     private String name;
 
     @Lob
-    private byte[] content;
+    @Column(columnDefinition = "BYTEA")
+    private Blob content;
+
 
     @ManyToOne
     @JoinColumn(name = "folder_id")
