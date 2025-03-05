@@ -1,0 +1,11 @@
+# Ignorera bygg- och cachefiler
+.gradle/
+build/
+out/
+node_modules/
+!src/main/resources/
+
+# Ignorera IDE-specifika filer
+.idea/
+*.iml
+.vscode/
