@@ -14,8 +14,14 @@ public class UserEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(unique = true, nullable = false)
     private String username;
+
+    @Column(unique = true, nullable = false)
+    private String email;  // 🔥 Nytt fält
 
     @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL)
     private List<FolderEntity> folders;
+
+    private String role = "USER";  // 🔥 Nytt fält för att hantera roller
 }
