@@ -51,42 +51,4 @@ public class FileController {
             return ResponseEntity.status(500).body("Fel vid uppladdning av fil.");
         }
     }
-
-    @GetMapping("/{fileId}")
-    public ResponseEntity<Optional<byte[]>> downloadFile(@PathVariable Long fileId,
-                                                         @AuthenticationPrincipal OAuth2User authUser) {
-        if (authUser == null) {
-            return ResponseEntity.status(401).body(null);
-        }
-
-        try {
-            Optional<byte[]> content = fileService.getFileContent(fileId);
-            if (content.isEmpty()) {
-                return ResponseEntity.notFound().build();
-            }
-
-            return ResponseEntity.ok()
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"file_" + fileId + "\"")
-                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                    .body(content);
-        } catch (Exception e) {
-            return ResponseEntity.status(500).body(null);
-        }
-    }
-
-    @DeleteMapping("/{fileId}")
-    public ResponseEntity<String> deleteFile(@PathVariable Long fileId,
-                                             @AuthenticationPrincipal OAuth2User authUser) {
-        if (authUser == null) {
-            return ResponseEntity.status(401).body("Du måste vara inloggad för att ta bort filer.");
-        }
-
-        boolean deleted = fileService.deleteFile(fileId);
-
-        if (deleted) {
-            return ResponseEntity.ok("Filen har raderats!");
-        } else {
-            return ResponseEntity.notFound().build();
-        }
-    }
 }
