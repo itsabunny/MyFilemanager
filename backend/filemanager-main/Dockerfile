@@ -4,8 +4,11 @@ FROM eclipse-temurin:23-jdk AS build
 # Sätt arbetskatalogen i containern
 WORKDIR /app
 
-# Kopiera projektfilerna till containern
+# Kopiera projektfilerna till containern (Fixat!)
 COPY . .
+
+# Se till att `gradlew` har exekveringsrättigheter
+RUN chmod +x ./gradlew
 
 # Bygg applikationen med Gradle
 RUN ./gradlew build --no-daemon
