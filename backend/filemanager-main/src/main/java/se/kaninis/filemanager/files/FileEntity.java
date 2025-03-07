@@ -20,7 +20,6 @@ public class FileEntity {
     @Column(columnDefinition = "BYTEA")
     private Blob content;
 
-
     @ManyToOne
     @JoinColumn(name = "folder_id")
     private FolderEntity folder;
