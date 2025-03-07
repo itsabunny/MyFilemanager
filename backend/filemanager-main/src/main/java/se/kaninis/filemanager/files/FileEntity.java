@@ -3,6 +3,7 @@ package se.kaninis.filemanager.files;
 import jakarta.persistence.*;
 import lombok.Data;
 import se.kaninis.filemanager.folders.FolderEntity;
+import se.kaninis.filemanager.users.UserEntity;
 
 import java.sql.Blob;
 
@@ -23,4 +24,8 @@ public class FileEntity {
     @ManyToOne
     @JoinColumn(name = "folder_id")
     private FolderEntity folder;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private UserEntity owner; // Ny kolumn för att koppla filen till användaren!
 }
