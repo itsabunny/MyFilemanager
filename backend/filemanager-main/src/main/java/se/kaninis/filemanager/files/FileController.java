@@ -35,9 +35,9 @@ public class FileController {
     }
 
     @GetMapping("/{fileId}")
-    public ResponseEntity<byte[]> downloadFile(@PathVariable Long fileId) {
+    public ResponseEntity<Optional<byte[]>> downloadFile(@PathVariable Long fileId) {
         try {
-            byte[] content = fileService.getFileContent(fileId);
+            Optional<byte[]> content = fileService.getFileContent(fileId);
             if (content == null) {
                 return ResponseEntity.notFound().build();
             }
@@ -46,7 +46,7 @@ public class FileController {
                     .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"file_" + fileId + "\"")
                     .contentType(MediaType.APPLICATION_OCTET_STREAM)
                     .body(content);
-        } catch (SQLException e) {
+        } catch (Exception e) {
             return ResponseEntity.status(500).body(null);
         }
     }
