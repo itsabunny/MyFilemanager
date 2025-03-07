@@ -30,13 +30,14 @@ public class FileService {
         fileRepository.save(file);
     }
 
-    public byte[] getFileContent(Long id) throws SQLException {
+    public Optional<byte[]> getFileContent(Long id) throws SQLException {
         Optional<Blob> blobOpt = fileRepository.findFileContentById(id);
         if (blobOpt.isPresent()) {
             Blob blob = blobOpt.get();
-            return blob.getBytes(1, (int) blob.length());  // Konverterar Blob till byte[]
+            return Optional.of(blob.getBytes(1, (int) blob.length()));  // Konverterar Blob till byte[]
         }
-        return null;
+
+        return Optional.empty();
     }
 
     public boolean deleteFile(Long id) {
