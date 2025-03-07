@@ -1,8 +1,8 @@
 package se.kaninis.filemanager.folders;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import se.kaninis.filemanager.users.UserEntity;
 
 import java.util.List;
 
@@ -10,18 +10,34 @@ import java.util.List;
 @RequestMapping("/api/folders")
 public class FolderController {
 
-    @Autowired
-    private FolderService folderService;
+    private final FolderService folderService;
+
+    // Bytte från @Autowired till konstruktionsinjektion
+    public FolderController(FolderService folderService) {
+        this.folderService = folderService;
+    }
 
     @PostMapping("/create")
-    public ResponseEntity<FolderEntity> createFolder(@RequestParam String name){
-        FolderEntity folder = folderService.createFolder(name);
-        return ResponseEntity.ok(folder);
+    public ResponseEntity<?> createFolder(@RequestParam String name, @RequestParam Long userId) {
+        try {
+            UserEntity user = new UserEntity(); // TODO: hämta användaren från databasen via UserService
+            user.setId(userId);
+            FolderEntity folder = folderService.createFolder(name, user);
+            return ResponseEntity.ok(folder);
+        } catch (Exception e) {
+            return ResponseEntity.status(400).body("Kunde inte skapa mappen: " + e.getMessage()); // Felhantering
+        }
     }
 
     @GetMapping
-    public ResponseEntity<List<FolderEntity>> getAllFolders(){
-        List<FolderEntity> folders = folderService.getAllFolders();
-        return ResponseEntity.ok(folders);
+    public ResponseEntity<?> getAllFolders(@RequestParam Long userId) {
+        try {
+            UserEntity user = new UserEntity(); // TODO:️ hämta användaren från databasen via UserService
+            user.setId(userId);
+            List<FolderEntity> folders = folderService.getAllFolders(user).toList();
+            return ResponseEntity.ok(folders);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Fel vid hämtning av mappar: " + e.getMessage()); // Felhantering
+        }
     }
 }
