@@ -6,6 +6,7 @@ import se.kaninis.filemanager.users.UserEntity;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 @Service
 public class FolderService {
@@ -31,9 +32,8 @@ public class FolderService {
      * @param user Inloggad användare
      * @return Lista över användarens mappar
      */
-    public List<FolderEntity> getAllFolders(UserEntity user) {
+    public Stream<FolderEntity> getAllFolders(UserEntity user) {
         return folderRepository.findAll().stream()
-                .filter(folder -> folder.getOwner().equals(user))
-                .toList();
+                .filter(folder -> folder.getOwner().equals(user));
     }
 }
