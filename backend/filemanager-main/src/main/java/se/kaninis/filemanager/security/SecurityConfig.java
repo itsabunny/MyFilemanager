@@ -2,10 +2,8 @@ package se.kaninis.filemanager.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,23 +11,36 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import java.util.Map;
 
+/**
+ * Konfigurationsklass för säkerhet och autentisering via OAuth2.
+ */
 @Configuration
 public class SecurityConfig {
+
+    /**
+     * Definierar säkerhetsfilterkedjan för applikationen.
+     *
+     * @param http HttpSecurity-konfiguration.
+     * @return SecurityFilterChain med konfigurerade säkerhetsregler.
+     * @throws Exception Om konfigurationen misslyckas.
+     */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/users/register", "/login").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/users/register").permitAll()
+                .requestMatchers("/login", "/oauth2/**").permitAll()
                 .requestMatchers("/api/files/**", "/api/folders/**").authenticated()
                 .anyRequest().authenticated()
             )
             .oauth2Login(oauth2 -> oauth2
                 .loginPage("/login")
-                .defaultSuccessUrl("/api/auth/me", true) // Byter till /api/auth/me för att frontend kan få användardata
+                .defaultSuccessUrl("/api/auth/me", true)
             )
             .logout(logout -> logout.logoutSuccessUrl("/").permitAll())
-            .cors(cors -> cors.disable()) // Stäng av CORS här om du hanterar det på annat sätt
-            .csrf(csrf -> csrf.disable()); // Stäng av CSRF för API-anrop
+            .cors(cors -> cors.configure(http)) // CORS-hantering
+            .csrf(csrf -> csrf.ignoringRequestMatchers("/api/auth/**")); // Skydda CSRF utom för OAuth2-anrop
+
         return http.build();
     }
 }
@@ -41,12 +52,14 @@ public class SecurityConfig {
 @RequestMapping("/api/auth")
 class AuthController {
 
+    /**
+     * Hämtar information om den inloggade användaren.
+     *
+     * @param authUser Den autentiserade OAuth2-användaren.
+     * @return ResponseEntity med användarens attribut eller felmeddelande.
+     */
     @GetMapping("/me")
-    public ResponseEntity<?> getUserInfo(@AuthenticationPrincipal OAuth2User authUser) {
-        if (authUser == null) {
-            return ResponseEntity.status(401).body("Ingen användare är inloggad.");
-        }
-        return ResponseEntity.ok(authUser.getAttributes());
+    public Map<String, Object> getUserInfo(OAuth2User authUser) {
+        return authUser.getAttributes();
     }
 }
-
