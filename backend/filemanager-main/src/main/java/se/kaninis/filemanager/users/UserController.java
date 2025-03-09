@@ -1,7 +1,5 @@
 package se.kaninis.filemanager.users;
 
-import org.springframework.hateoas.Link;
-import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -25,8 +23,8 @@ public class UserController {
     /**
      * Hämtar information om den inloggade användaren.
      *
-     * @param authUser Den autentiserade användaren.
-     * @return ResponseEntity med användardata eller felmeddelande.
+     * @param authUser OAuth2-användaren.
+     * @return Användaruppgifter eller felmeddelande.
      */
     @GetMapping("/me")
     public ResponseEntity<?> getCurrentUser(@AuthenticationPrincipal OAuth2User authUser) {
@@ -36,38 +34,31 @@ public class UserController {
 
         String username = authUser.getAttribute("name");
         Optional<UserEntity> userOpt = userService.findByUsername(username);
+
         if (userOpt.isEmpty()) {
             return ResponseEntity.status(404).body("Användare ej hittad i databasen.");
         }
 
-        UserEntity user = userOpt.get();
-        Link selfLink = WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(UserController.class)
-                .getCurrentUser(authUser)).withSelfRel();
-
-        return ResponseEntity.ok().body(user).header("Link", selfLink.toUri().toString());
+        return ResponseEntity.ok(userOpt.get());
     }
 
     /**
      * Registrerar en ny användare.
      *
-     * @param authUser Den autentiserade användaren via OAuth2.
-     * @return ResponseEntity med registrerad användare eller felmeddelande.
+     * @param username Användarnamn som skickas via query-param.
+     * @return Registrerad användare eller felmeddelande.
      */
     @PostMapping("/register")
-    public ResponseEntity<?> registerUser(@AuthenticationPrincipal OAuth2User authUser) {
-        if (authUser == null) {
-            return ResponseEntity.status(401).body("Autentisering krävs för registrering.");
+    public ResponseEntity<?> registerUser(@RequestParam String username) {
+        if (username == null || username.isBlank()) {
+            return ResponseEntity.badRequest().body("Användarnamn får inte vara tomt!");
         }
 
-        String username = authUser.getAttribute("name");
         if (userService.existsByUsername(username)) {
-            return ResponseEntity.status(409).body("Användarnamnet är redan registrerat.");
+            return ResponseEntity.badRequest().body("Användarnamnet är redan registrerat!");
         }
 
         UserEntity newUser = userService.registerUser(username);
-        Link selfLink = WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(UserController.class)
-                .getCurrentUser(authUser)).withSelfRel();
-
-        return ResponseEntity.ok().body(newUser).header("Link", selfLink.toUri().toString());
+        return ResponseEntity.ok(newUser);
     }
 }
