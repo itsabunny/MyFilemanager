@@ -29,7 +29,7 @@ public class SecurityConfig {
         http
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(HttpMethod.POST, "/api/users/register").permitAll()
-                .requestMatchers("/login", "/oauth2/**").permitAll()
+                .requestMatchers("/login", "/api/monitoring/status", "/oauth2/**").permitAll()
                 .requestMatchers("/api/files/**", "/api/folders/**").authenticated()
                 .anyRequest().authenticated()
             )
