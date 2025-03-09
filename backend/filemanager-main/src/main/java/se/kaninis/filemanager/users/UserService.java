@@ -2,7 +2,6 @@ package se.kaninis.filemanager.users;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.util.Optional;
 
 /**
@@ -49,5 +48,15 @@ public class UserService {
         UserEntity user = new UserEntity();
         user.setUsername(username);
         return userRepository.save(user);
+    }
+
+    /**
+     * Kontrollerar om en användare med det angivna användarnamnet existerar.
+     *
+     * @param username Användarnamn.
+     * @return true om användaren finns, annars false.
+     */
+    public boolean existsByUsername(String username) {
+        return userRepository.existsByUsername(username);
     }
 }
